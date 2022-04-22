@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="cf80f0e6-6abf-4187-b5bf-b375fca051b3" >
+		<http:listener-connection host="localhost" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="a085381a-6ee8-48f3-bd3b-7670dee345fb" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="Sribhavi@123" database="anji" />
+	</db:config>
+	<db:config name="Database_Config1" doc:name="Database Config" doc:id="83a3d123-1e8d-4080-a8da-b202a2b469e3" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="Sribhavi@123" database="anji" />
+	</db:config>
+	<flow name="databaseFlow" doc:id="25b8034c-30f8-4279-887f-642bcdf6e731" >
+		<http:listener doc:name="Listener" doc:id="8f58be2f-a865-4fae-886e-b2d648a24da8" config-ref="HTTP_Listener_config" path="db"/>
+		<ee:transform doc:name="Transform Message" doc:id="234e6419-4aee-4734-9a83-b134458318f5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[{
+"PARTNERADDRESSES": (payload.Order.Addresses.Address filter $."type" == "WE") map 
+{
+    "ADDR_NO": $.link,
+    "NAME": $.firstName,
+    "NAME_2": $.lastName,
+    "E_MAIL": $.email,
+    "STREET":$.address1 ++ $.address2,
+    "CITY": $.city,
+    "POSTL_CODE": $.postalCode,
+    "REGION": $.StateOrProvince,
+    "COUNTRY": $.Country
+}
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="86f2e6dd-6e76-4bd4-af53-920b34ec7778" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="f13b9fb8-c0eb-4f79-967a-7f29f3749bf1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.PARTNERADDRESSES[0]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:insert doc:name="Insert" doc:id="d832b43c-facf-4025-ae4a-d557053325cb" config-ref="Database_Config1">
+			<db:sql ><![CDATA[insert into anji.hari(ADDR_NO, NAME,NAME_2,E_MAIL,STREET,CITY,POSTL_CODE,REGION,COUNTRY)values (:ADDR_NO, :NAME, :NAME_2, :E_MAIL, :STREET, :CITY, :POSTL_CODE, :REGION, :COUNTRY)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[payload]]]></db:input-parameters>
+		</db:insert>
+	</flow>
+</mule>
