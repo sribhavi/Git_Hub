@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="e8ae1192-443d-4012-adae-cc1b68264675" >
+		<http:listener-connection host="localhost" port="5050" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="e780ced3-8668-4105-af07-d5c75e43db5d" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="Sribhavi@123" database="harika" />
+	</db:config>
+	<flow name="errorFlow" doc:id="2bb4f5d3-b995-4a45-af5e-d6528ee4cebe" >
+		<http:listener doc:name="Listener" doc:id="be692102-1db9-4ed9-b7f9-069f2f9cd43e" config-ref="HTTP_Listener_config" path="error"/>
+		<ee:transform doc:name="Transform Message" doc:id="4b377be6-9e53-44ea-8679-a2f11b62811f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var Tp1 = "10001"
+var Tp2 = "10002"
+var Tp3 = "10003"
+var Tp4 = "10004"
+var Tp5 = "10005"
+var Tp6 = "10006"
+var Tp7 = "10007"
+---
+payload.emp map (emp) -> {
+    (emp mapObject (value,key) ->{
+    ("country": "INDIA") if(value as String == "IN"),
+    ("country": "Antarctica") if(value as String == "AQ"),
+    ("country": "Benin") if(value as String == "BJ"),
+    ("country": "United Arab Emirates") if(value as String == "AE"),
+    ("country": "Bhutan") if(value as String == "BT"),
+    ("country": "American Samoa") if(value as String == "AS"),
+    ("country": "Argentina") if(value as String == "AR"),
+    ("TypeCode": "Standard Attachment") if(value as String == Tp1),
+    ("TypeCode": "Original Document") if(value as String == Tp2),
+     ("TypeCode": "Incident Context") if(value as String == Tp3),
+    ("TypeCode": "Curriculum Vitae") if(value as String == Tp4),
+    ("TypeCode": "Policy" as String) if(value as String == Tp5),
+    ("TypeCode": "Certificate" as String) if(value as String == Tp6),
+    ("TypeCode": "Skills Profile" as String) if(value as String == Tp7),
+     ("Rolecode": "Account") if(value as String == "BUP002"),
+    ("Rolecode": "Contact") if(value as String == "BUP001"),
+    ((key):value) if(key as String != "country" and key as String != "TypeCode"and key as String != "Rolecode")
+
+})
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<batch:job jobName="errorBatch_Job" doc:id="2061a8b2-9dfa-457d-99b1-8b714d573484" >
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="64e7ee0f-3b5f-402f-b9fc-e54dd287fc3a" >
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="cfe19133-e965-4764-bc64-dbfd3795e6b1" streaming="true">
+						<logger level="INFO" doc:name="Logger" doc:id="d8260c83-9282-4c9a-9977-f4b342de5af1" message="#[payload]"/>
+						<db:bulk-insert doc:id="86d0fa99-c569-4c4d-ab7f-67300e5a567d" config-ref="Database_Config">
+							<db:sql ><![CDATA[insert into harika.hari(name,TypeCode,country,Rolecode)values (:name, :TypeCode, :country, :Rolecode)]]></db:sql>
+						</db:bulk-insert>
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<ee:transform doc:name="Transform Message" doc:id="e480ef8a-417b-40e1-a75b-f73572cb8277" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var Tp1 = "10001"
+var Tp2 = "10002"
+var Tp3 = "10003"
+var Tp4 = "10004"
+var Tp5 = "10005"
+var Tp6 = "10006"
+var Tp7 = "10007"
+---
+payload.emp map (emp) -> {
+    (emp mapObject (value,key) ->{
+    ("country": "INDIA") if(value as String == "IN"),
+    ("country": "Antarctica") if(value as String == "AQ"),
+    ("country": "Benin") if(value as String == "BJ"),
+    ("country": "United Arab Emirates") if(value as String == "AE"),
+    ("country": "Bhutan") if(value as String == "BT"),
+    ("country": "American Samoa") if(value as String == "AS"),
+    ("country": "Argentina") if(value as String == "AR"),
+    ("TypeCode": "Standard Attachment") if(value as String == Tp1),
+    ("TypeCode": "Original Document") if(value as String == Tp2),
+     ("TypeCode": "Incident Context") if(value as String == Tp3),
+    ("TypeCode": "Curriculum Vitae") if(value as String == Tp4),
+    ("TypeCode": "Policy" as String) if(value as String == Tp5),
+    ("TypeCode": "Certificate" as String) if(value as String == Tp6),
+    ("TypeCode": "Skills Profile" as String) if(value as String == Tp7),
+     ("Rolecode": "Account") if(value as String == "BUP002"),
+    ("Rolecode": "Contact") if(value as String == "BUP001"),
+    ((key):value) if(key as String != "country" and key as String != "TypeCode"and key as String != "Rolecode")
+
+})
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="6b3b9dab-ea94-47bd-a09f-ec521bdd15fa" message="#[payload]"/>
+			</batch:on-complete>
+		</batch:job>
+	</flow>
+</mule>
