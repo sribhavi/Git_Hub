@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="286f325a-8369-4bb0-94b3-facdbdca8c31" >
+		<http:listener-connection host="localhost" port="8081" />
+	</http:listener-config>
+	<flow name="listener" doc:id="e63398ad-05f5-4901-be15-ec2af988c6c0" >
+		<http:listener doc:name="Copy_of_Listener" doc:id="6316d399-9f5e-4c35-a886-fb46684eeb8a" config-ref="HTTP_Listener_config" path="transform" />
+		<ee:transform doc:name="Copy_of_Transform Message" doc:id="bc434900-6709-4265-b3e9-6ae43990f6e3" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+1 to 80 map{
+		id: 1234,
+		firstname: "sri",
+		salary: 30000
+		
+	}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Copy_of_Logger" doc:id="3adb9c28-5b30-4cc0-8bba-551889ed25fe" message="#[payload]" />
+	</flow>
+</mule>
