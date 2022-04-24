@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="af92136e-05ff-4bc4-83ae-f458f7f2d4ef" >
 		<http:listener-connection host="localhost" port="8081" />
 	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="f70200f8-b27d-43f8-b69e-fc6395116390" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="Sribhavi@123" database="db" />
+	</db:config>
 	<flow name="listnerFlow" doc:id="b722a4d8-b388-4387-9214-057f65b50f05" >
 		<http:listener doc:name="Listener" doc:id="1c2524ee-d112-4989-9dbe-614801deb456" config-ref="HTTP_Listener_config" path="transform"/>
 		<ee:transform doc:name="Transform Message" doc:id="bb328c40-f2c9-4eed-9455-7e7f98a8b92d" >
@@ -15,9 +19,13 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
-(payload.Value filter $.status !=null)[0]]]></ee:set-payload>
+(payload.Value filter $.status !=null)[1]]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<db:insert doc:id="390815e7-4684-4c3b-8567-563bfc63c493" config-ref="Database_Config">
+			<db:sql ><![CDATA[insert into db.db4(employee_name,employee_salary,employee_age)values (:employee_name, :employee_salary, :employee_age)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[payload]]]></db:input-parameters>
+		</db:insert>
 		<logger level="INFO" doc:name="Logger" doc:id="5c637295-3cb6-40d9-a7a9-fed063001cf2" message="#[payload]"/>
 	</flow>
 </mule>
